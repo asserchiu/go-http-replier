@@ -1,0 +1,7 @@
+version: '2'
+services:
+  mongo:
+    container_name: http-replier-8080
+    image: go-http-replier:latest
+    ports:
+      - "8080:8080"
