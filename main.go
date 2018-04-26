@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -42,6 +44,10 @@ func main() {
 
 	http.HandleFunc("/echo", echoRequestHandler)
 	http.HandleFunc("/echoAll", echoAllRequestHandler)
+
+	http.HandleFunc("/etag.html", etagRequestHandler)
+	http.HandleFunc("/etag.js", etagRequestHandler)
+	http.HandleFunc("/etag", etagRequestHandler)
 
 	http.HandleFunc("/simpleCache", NewSimpleCache().HttpHandler)
 
@@ -106,4 +112,65 @@ func echoAllRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(responseBytes)
+}
+
+func etagRequestHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	etag := r.Header.Get("If-None-Match")
+	if etag == "" {
+		etag = strconv.FormatInt(time.Now().UnixNano(), 10)
+	}
+
+	cacheControl := os.Getenv("ETAG_CACHE_CONTROL")
+	if cacheControl == "" {
+		cacheControl = "max-age=600"
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "ETag")
+	w.Header().Set("Cache-Control", cacheControl)
+	w.Header().Set("ETag", etag)
+
+	// take the extension
+	idx := strings.LastIndex(path, ".")
+	ext := ""
+	if idx > -1 {
+		ext = path[idx:]
+	}
+
+	switch ext {
+	case ".html":
+		w.Header().Set("Content-Type", "text/html")
+		f := `
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+
+<style>
+.floating {
+  display: table;
+  float: right;
+  height: 100%%;
+  width: 100%%;
+  border: 1px solid red;
+}
+.floating p {
+  display: table-cell; 
+  vertical-align: middle; 
+  text-align: center;
+  font-size: calc(1.5*100vw/%d);
+}
+</style>
+
+<div class="floating"><p><tt>%s</tt></p></div>
+`
+		fmt.Fprintf(w, f, len(etag), etag)
+		return
+	case ".js":
+		w.Header().Set("Content-Type", "application/javascript")
+		f := `!function(){window.ETag="%s"}();`
+		fmt.Fprintf(w, f, etag)
+		return
+
+	}
+
+	w.Write([]byte(etag))
 }

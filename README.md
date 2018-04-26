@@ -26,6 +26,10 @@ Simple HTTP server with some useful tools
     * DELETE =>
         * Delete data from cacheEntry.
         * Failed when cacheEntry not exist.
+* /etag
+    * .html => a web page with browser sent or new ETag value inside
+    * .js => a executable script that can set window.ETag as browser sent or new ETag value
+    * => Text string of browser sent or new ETag value
 
 ## ENV
 
