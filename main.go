@@ -15,6 +15,16 @@ import (
 func main() {
 	startTime := time.Now()
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	http.HandleFunc("/hostname", func(w http.ResponseWriter, r *http.Request) {
+		hostname, _ := os.Hostname()
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(hostname))
+	})
+
 	http.HandleFunc("/uptime", func(w http.ResponseWriter, r *http.Request) {
 		uptime := time.Now().Sub(startTime)
 		w.WriteHeader(http.StatusOK)
