@@ -3,12 +3,14 @@ Simple HTTP server with some useful tools
 
 ## Routes
 
-* /uptime => `uptime.String()`
-* /ping => `"pong"`
-* /healthz => `"ok"`
+* / => HTTP 200
+* /hostname => HTTP 200 `os.Hostname()`
+* /uptime => HTTP 200 `uptime.String()`
+* /ping => HTTP 200 `"pong"`
+* /healthz => HTTP 200 `"ok"`
 * /healthz10s
-    * uptime less equal than 10s => `"ok"`
-    * uptime over 10s => `fmt.Sprintf("error: %v", uptime.String())`
+    * uptime less equal than 10s => HTTP 200 `"ok"`
+    * uptime over 10s => HTTP 500 `fmt.Sprintf("error: %v", uptime.String())`
 * /echo =>
     * response with request body
 * /echoAll =>
